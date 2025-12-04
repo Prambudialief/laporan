@@ -1,0 +1,18 @@
+Options -Indexes
+RewriteEngine On
+
+# --- IZINKAN HALAMAN LOGIN & REGISTER ---
+RewriteRule ^auth/login\.php$ - [L]
+RewriteRule ^auth/register\.php$ - [L]
+
+# --- IZINKAN ASSET (css/js/img) ---
+RewriteRule ^(asset|image)/(.*)$ - [L]
+
+# --- IZINKAN FOLDER YANG DIPAKAI USER ---
+RewriteRule ^(user|admin)/(.*)$ - [L]
+
+# --- BLOKIR AKSES ROOT /magang (tanpa file) ---
+RewriteRule ^$ - [F]
+
+# --- BLOKIR FOLDER RAWAN (tidak boleh diakses langsung) ---
+RewriteRule ^(services|template|template_admin)(/.*)?$ - [F]
