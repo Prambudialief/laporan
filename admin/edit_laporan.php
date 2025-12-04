@@ -57,6 +57,8 @@ if (isset($_POST['update'])) {
                 <select name="jenis_permasalahan" class="form-select">
                     <option value="Hacking" <?= $data['jenis_permasalahan'] == 'Hacking' ? 'selected' : ''?>>Hacking</option>
                     <option value="Down Time" <?= $data['jenis_permasalahan'] == 'Down Time' ? 'selected' : ''?>>Down Time</option>
+                    <option value="Aplikasi" <?= $data['jenis_permasalahan'] == 'Aplikasi' ? 'selected' : ''?>>Aplikasi</option>
+                    <option value="Jaringan" <?= $data['jenis_permasalahan'] == 'Jaringan' ? 'selected' : ''?>>Jaringan</option>
                 </select>
             </div>
             <div class="mb-3">

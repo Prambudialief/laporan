@@ -84,7 +84,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </div>
             </div>
             <div style="background-color: #EFEEEA;" class="sb-sidenav-footer">
-                <div class="small">Logged in as:</div>
+                <div class="small">Logged in as: Admin</div>
             </div>
         </nav>
     </div>

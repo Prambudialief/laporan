@@ -1,7 +1,7 @@
 </main>
 <footer class="py-3 mt-auto border-top bg-white shadow-sm">
     <div class="container-fluid px-4">
-        <div class="d-flex flex-wrap align-items-center justify-content-between text-center text-md-start small">
+        <div class="d-flex flex-wrap align-items-center justify-content-center text-center text-md-start small">
             <div class="text-muted mb-2 mb-md-0">
                 <span>&copy; <?= date('Y'); ?> <strong>Prambudi & Astri Salwa</strong></span><br>
                 <span>All Rights Reserved</span>
