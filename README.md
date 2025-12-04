@@ -2,7 +2,8 @@ Instalasi & Setup
 
 Berikut langkah untuk menjalankan secara lokal:
 
-Clone repository ini
+Clone repository ini:
+
 git clone https://github.com/Prambudialief/laporan.git
 cd laporan
 
