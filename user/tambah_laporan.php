@@ -98,7 +98,9 @@ include 'sistemLaporan.php';
                                 <label class="form-label">Jenis Permasalahan</label>
                                 <select class="form-select" name="jenis_permasalahan" required style="overflow-y: auto; max-height: 70px;">
                                     <option value="Hacking">Hacking</option>
+                                    <option value="Aplikasi">Aplikasi</option>
                                     <option value="Down time">Down Time</option>
+                                    <option value="Jaringan">Jaringan</option>
                                 </select>
                             </div>
                             <div class="mb-3">

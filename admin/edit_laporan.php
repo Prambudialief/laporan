@@ -69,7 +69,7 @@ if (isset($_POST['update'])) {
                 <select name="status_laporan" class="form-select" required>
                     <option value="Selesai" <?= $data['status_laporan'] == 'Selesai' ? 'selected' : '' ?>>Selesai</option>
                     <option value="Proses" <?= $data['status_laporan'] == 'Proses' ? 'selected' : '' ?>>Proses</option>
-                    <option value="Belum" <?= $data['status_laporan'] == 'Belum' ? 'selected' : '' ?>>Belum</option>
+                    <option value="Pending" <?= $data['status_laporan'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
                 </select>
             </div>
 
