@@ -41,6 +41,12 @@ if (!empty($_GET['petugas'])) {
   $filter[] = "nama_petugas LIKE '%$petugas%'";
 }
 
+if (!empty($_GET['bulan_mulai']) && !empty($_GET['bulan_selesai'])) {
+  $mulai = $_GET['bulan_mulai'] . "-01";
+  $akhir = date("Y-m-t", strtotime($_GET['bulan_selesai'] . "-01"));
+  $filter[] = "DATE(waktu_pelaporan) BETWEEN '$mulai' AND '$akhir'";
+}
+
 if (count($filter) > 0) {
   $query .= " WHERE " . implode(" AND ", $filter);
 }

@@ -30,6 +30,33 @@ if (!empty($_POST['petugas'])) {
     $filter[] = "nama_petugas LIKE '%" . mysqli_real_escape_string($conn, $_POST['petugas']) . "%'";
 }
 
+$bulan_mulai = $_POST['bulan_mulai'] ?? '';
+$bulan_selesai = $_POST['bulan_selesai'] ?? '';
+
+if ($bulan_mulai !== '' || $bulan_selesai !== '') {
+
+    if ($bulan_mulai !== '' && $bulan_selesai === '') {
+        $bulan_selesai = $bulan_mulai;
+    }
+
+    if ($bulan_mulai === '' && $bulan_selesai !== '') {
+        $bulan_mulai = $bulan_selesai;
+    }
+
+    $mulai = $bulan_mulai . "-01";
+    $akhir = date("Y-m-t", strtotime($bulan_selesai . "-01"));
+
+    $mulai = mysqli_real_escape_string($conn, $mulai);
+    $akhir = mysqli_real_escape_string($conn, $akhir);
+
+    if ($mulai > $akhir) {
+        $temp = $mulai;
+        $mulai = $akhir;
+        $akhir = $temp;
+    }
+
+    $filter[] = "DATE(waktu_pelaporan) BETWEEN '$mulai' AND '$akhir'";
+}
 
 if (count($filter) > 0) {
     $query .= " WHERE " . implode(" AND ", $filter);
@@ -63,6 +90,12 @@ $result = mysqli_query($conn, $query);
         <div class="card-body form-container">
             <form action="" method="post" enctype="multipart/form-data" class="bg-light p-3 rounded">
                 <div class="row g-3">
+                    <div class="col-lg-3 col-md-4 col-sm-6">
+                        <label class="form-label fw-semibold">Bulan Awal</label>
+                        <input type="month" class="form-control" name="bulan_mulai" value="<?= $_POST['bulan_mulai'] ?? '' ?>">
+                        <label class="form-label fw-semibold">Bulan Akhir</label>
+                        <input type="month" class="form-control" name="bulan_selesai" value="<?= $_POST['bulan_selesai'] ?? '' ?>">
+                    </div>
                     <!-- Kolom tanggal -->
                     <div class="col-lg-3 col-md-4 col-sm-6">
                         <label class="form-label fw-semibold">Tanggal</label>
@@ -144,7 +177,7 @@ $result = mysqli_query($conn, $query);
                             <button
                                 type="submit"
                                 formaction="cetakRekap.php?
-                                judul_laporan=<?= $_POST['judul_laporan'] ?? '' ?>&
+                                judul_laporan=<?= $_POST['judul_laporan'] ?? '' ?>&bulan_mulai=<?= $_POST['bulan_mulai'] ?? '' ?>&bulan_selesai=<?= $_POST['bulan_selesai'] ?? '' ?>&
                                 tahun=<?= $_POST['tahun'] ?? '' ?>&
                                 status_laporan=<?= $_POST['status_laporan'] ?? '' ?>&
                                 nama_aplikasi=<?= $_POST['nama_aplikasi'] ?? '' ?>&
@@ -157,7 +190,7 @@ $result = mysqli_query($conn, $query);
                             <button
                                 type="submit"
                                 formaction="cetakRekapExcel.php?
-                                judul_laporan=<?= $_POST['judul_laporan'] ?? '' ?>&
+                                judul_laporan=<?= $_POST['judul_laporan'] ?? '' ?>&bulan_mulai=<?= $_POST['bulan_mulai'] ?? '' ?>&bulan_selesai=<?= $_POST['bulan_selesai'] ?? '' ?>&
                                 tahun=<?= $_POST['tahun'] ?? '' ?>&
                                 status_laporan=<?= $_POST['status_laporan'] ?? '' ?>&
                                 nama_aplikasi=<?= $_POST['nama_aplikasi'] ?? '' ?>&
