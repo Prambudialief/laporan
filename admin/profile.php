@@ -2,10 +2,10 @@
 session_start();
 require '../services/connection.php';
 
-$user_id = $_SESSION['user_id'];
+$role = $_SESSION['role'];
 
-// Ambil data user
-$query = mysqli_query($conn, "SELECT * FROM user WHERE id = '$user_id'");
+// Ambil data profil user yg sedang login
+$query = mysqli_query($conn, "SELECT * FROM user WHERE role = '$role'");
 $data = mysqli_fetch_assoc($query);
 ?>
 <!DOCTYPE html>
@@ -31,7 +31,7 @@ $data = mysqli_fetch_assoc($query);
         }
 
         .profile-header {
-            background-color: #007bff;
+            background-color: #CF0F0F;
             color: white;
             text-align: center;
             padding: 30px 20px;
@@ -66,7 +66,7 @@ $data = mysqli_fetch_assoc($query);
         <div class="profile-header">
             <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
             <h3 class="mt-2 mb-0"><?= htmlspecialchars($data['nama']) ?></h3>
-            <small>User</small>
+            <small><?=  htmlspecialchars($data['role']) ?></small>
         </div>
 
         <div class="profile-body">
@@ -104,8 +104,9 @@ $data = mysqli_fetch_assoc($query);
                         placeholder="Kosongkan jika tidak diganti">
                 </div>
 
-                <button class="btn btn-primary w-100 mt-2">Update Profil</button>
+                <button class="btn btn-danger w-100 mt-2">Update Profil</button>
                 <a href="dashboard.php" class="btn btn-secondary w-100 mt-2">Batal</a>
+
             </form>
         </div>
 

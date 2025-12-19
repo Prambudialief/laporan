@@ -71,7 +71,7 @@ if (file_exists($path)) {
                         <div class="text-center">
                             <img src="<?php echo $base64; ?>" alt="logo" style="max-width 170px; max-height: 170px;">
                             <h3 class="fw-bold">REGISTER</h3>
-                            <p>Sistem Monitoring Aplikasi & Pencatatatan TIK</p>
+                            <p>Sistem Monitoring Aplikasi & Pencatatan TIK</p>
                         </div>
                         <?php if (isset($error)) : ?>
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">

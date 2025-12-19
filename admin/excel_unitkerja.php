@@ -1,45 +1,58 @@
 <?php
-$aplikasi = [
-   "Humas",
-                    "Pusdatin",
-                    "ULP",
-                    "Kepegawain",
-                    "Perencanaan",
-                    "Biro Hukum & Kepegawain",
-                    "Dit. Operasi dan Dit. Kesiapsiagaan",
-                    "Biro Umum",
-                    "Inspektorat",
-                    "Balai Diklat & Puslat SDM",
-                    "Dit Kesiapsiagaan",
-                    "Biro Humas dan Umum",
-                    "Dit. Binpot",
-                    "Dit. Operasi",
-                    "Dit. Komunikasi",
-                    "Perencanaan KTLN",
-                    "Biro Kepegawaian & Ortala",
-                    "Dharma Wanita Persatuan",
-                    "Deputi Bidang Operasi Pencarian dan Pertolongan, dan kesiapsiagaan"
-];
-$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-$rowsPerPage = 10;
-
-$start = ($page - 1) * $rowsPerPage;
-$dataPage = array_slice($aplikasi, $start, $rowsPerPage);
-
-header("Content-Type: text/csv");
-header("Content-Disposition: attachment; filename=daftar_unit_kerja.csv");
-
-$output = fopen("php://output", "w");
-
-// Header kolom
-fputcsv($output, ['No', 'Unit Kerja']);
-
-// Isi data
-$no =$start + 1;
-foreach ($dataPage as $item) {
-    fputcsv($output, [$no++, $item]);
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-fclose($output);
-exit;
+include '../services/connection.php';
+
+$limit = $_GET['limit'] ?? 10; 
+$page  = isset($_GET['page']) ? intval($_GET['page']) : 1;
+if ($page < 1) $page = 1;
+
+// Set header untuk Excel
+header("Content-Type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=laporan_unit_kerja_page_" . $page . ".xls");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+if ($limit === 'all') {
+
+    $query = "SELECT unit_kerja FROM master_unit_kerja ORDER BY id DESC";
+
+} else {
+
+    $limit  = intval($limit);
+    $offset = ($page - 1) * $limit;
+
+    $query = "SELECT unit_kerja 
+              FROM master_unit_kerja
+              ORDER BY id DESC 
+              LIMIT $offset, $limit";
+}
+
+$result = mysqli_query($conn, $query);
+
+// Mulai tabel
+echo "<table border='1'>
+<thead>
+<tr style='background:#d9d9d9; font-weight:bold; text-align:center;'>
+    <th>No</th>
+    <th>Unit Kerja</th>
+</tr>
+</thead>
+<tbody>";
+
+$no = 1;
+
+while ($row = mysqli_fetch_assoc($result)) {
+    echo "<tr>
+        <td style='text-align:center;'>$no</td>
+        <td>{$row['unit_kerja']}</td>
+    </tr>";
+    $no++;
+}
+
+echo "</tbody></table>";
+
+exit();
 ?>

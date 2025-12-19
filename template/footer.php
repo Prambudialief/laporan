@@ -1,20 +1,21 @@
 </main>
 <footer class="py-3 mt-auto border-top bg-white shadow-sm">
-    <div class="container-fluid px-4">
-        <div class=" d-flex align-items-center justify-content-center text-center text-md-start small">
-            <div class="text-muted mb-2 mb-md-0">
-                <span>&copy; <?= date('Y'); ?> <strong>Prambudi & Astri Salwa</strong></span><br>
-                <span>All Rights Reserved</span>
+<div class="container-fluid px-4">
+        <div class="row align-items-center">
+            <div class="col-12 col-md-10 text-center">
+                <div class="text-muted small">
+                    <span>&copy; <?= date('Y'); ?> <strong>Prambudi & Astri Salwa</strong></span><br>
+                    <span>All Rights Reserved</span>
+                </div>
             </div>
 
-            <div class="d-flex align-items-center justify-content-end">
+            <div class="col-12 col-md-2 d-flex justify-content-center justify-content-md-end mt-2 mt-md-0">
                 <img src="../images/basarnas1.png"
                     alt="Logo Basarnas"
                     class="footer-logo img-fluid"
-                    style="max-width: 55px;
-                    max-height: 55px;"
-                >
+                    style="max-width: 55px; max-height: 55px;">
             </div>
+
         </div>
     </div>
 </footer>

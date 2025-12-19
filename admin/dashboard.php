@@ -1,25 +1,48 @@
 <?php
-require_once '../template_admin/header.php';
-require_once '../template_admin/navbar.php';
-require_once '../template_admin/sidebar.php';
+session_start();
+
+include '../template_admin/header.php';
+include '../template_admin/navbar.php';
+include '../template_admin/sidebar.php';
+include '../services/connection.php';
+
 
 $tot = $conn->query("SELECT COUNT(*) AS jml FROM laporan")->fetch_assoc()['jml'];
+
 $selesai = $conn->query("SELECT COUNT(*) AS jml FROM laporan WHERE status_laporan='Selesai'")->fetch_assoc()['jml'];
+
 $proses = $conn->query("SELECT COUNT(*) AS jml FROM laporan WHERE status_laporan!='Selesai'")->fetch_assoc()['jml'];
-$appQuery = $conn->query("SELECT nama_aplikasi, COUNT(*) AS total FROM laporan GROUP BY nama_aplikasi ORDER BY total DESC LIMIT 10");
+
+$appQuery = $conn->query("
+    SELECT nama_aplikasi, COUNT(*) AS total 
+    FROM laporan 
+    GROUP BY nama_aplikasi 
+    ORDER BY total DESC
+");
+
+
+$statusQuery = $conn->query("
+    SELECT status_laporan, COUNT(*) AS total 
+    FROM laporan 
+    GROUP BY status_laporan
+");
+
+
 $appNames = [];
 $appCounts = [];
 while ($row = $appQuery->fetch_assoc()) {
     $appNames[] = $row['nama_aplikasi'];
     $appCounts[] = $row['total'];
 }
-$statusQuery = $conn->query("SELECT status_laporan, COUNT(*) AS total FROM laporan GROUP BY status_laporan");
+
 $statusLabels = [];
 $statusData = [];
 while ($row = $statusQuery->fetch_assoc()) {
     $statusLabels[] = $row['status_laporan'];
     $statusData[] = $row['total'];
-} ?>
+}
+?>
+
 <style>
     .card-stat {
         border-radius: 15px;
@@ -31,9 +54,14 @@ while ($row = $statusQuery->fetch_assoc()) {
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
     }
 </style>
+
 <div class="container-fluid mt-4">
-    <h3 class="fw-bold mb-4">Dashboard Statistik</h3> <!-- STATISTICS CARD -->
-    <div class="row g-3">
+
+    <h3 class="fw-bold mb-4 text-center">Dashboard Statistik</h3>
+
+    <!-- STATISTICS CARD -->
+    <div class="row g-3 d-flex justify-content-center align-items-center">
+
         <div class="col-md-3 col-sm-6">
             <div class="card card-stat shadow-sm border-primary">
                 <div class="card-body text-center">
@@ -42,6 +70,7 @@ while ($row = $statusQuery->fetch_assoc()) {
                 </div>
             </div>
         </div>
+
         <div class="col-md-3 col-sm-6">
             <div class="card card-stat shadow-sm border-success">
                 <div class="card-body text-center">
@@ -50,6 +79,7 @@ while ($row = $statusQuery->fetch_assoc()) {
                 </div>
             </div>
         </div>
+
         <div class="col-md-3 col-sm-6">
             <div class="card card-stat shadow-sm border-warning">
                 <div class="card-body text-center">
@@ -58,35 +88,72 @@ while ($row = $statusQuery->fetch_assoc()) {
                 </div>
             </div>
         </div>
-    </div> <!-- CHART SECTION -->
-    <div class="row mt-4"> <!-- Grafik laporan per aplikasi -->
-        <div class="col-lg-8">
+
+    </div>
+
+    <!-- CHART SECTION -->
+    <div class="row mt-4">
+
+        <!-- Grafik laporan per aplikasi -->
+        <div class="col-lg-8 mb-2">
             <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white fw-bold">Grafik Laporan per Aplikasi</div>
-                <div class="card-body"> <canvas id="chartApps" height="150"></canvas> </div>
-            </div>
-        </div> <!-- Grafik pie status -->
-        <div class="col-lg-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white fw-bold">Status Laporan</div>
-                <div class="card-body"> <canvas id="chartStatus" height="200"></canvas> </div>
+                <div class="card-header text-center bg-info text-white fw-bold">Grafik Laporan per Aplikasi</div>
+                <div class="card-body">
+
+                    <!-- SCROLLABLE CHART -->
+                    <div style="overflow-x: auto; white-space: nowrap;">
+                        <canvas id="chartApps" style="min-width: 1200px; height: 400px;"></canvas>
+                    </div>
+
+                </div>
             </div>
         </div>
+
+        <!-- Grafik pie status -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header text-center bg-info text-white fw-bold">Status Laporan</div>
+                <div class="card-body">
+                    <canvas id="chartStatus" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
     </div>
-</div> <!-- CHART.JS -->
+</div>
+
+<!-- CHART.JS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-    const FixLabelRotation = {
-        id: 'FixLabelRotation',
-        beforeDraw(chart) {
-            if (chart.options.scales?.x?.ticks) {
-                chart.options.scales.x.ticks.maxRotation = 0;
-                chart.options.scales.x.ticks.minRotation = 0;
-            }
-        }
-    };
-    var ctxApp = document.getElementById('chartApps');
-    new Chart(ctxApp, {
+
+// -------------------------
+// RANDOM COLOR GENERATOR
+// -------------------------
+function generateColors(count) {
+    let colors = [];
+    for (let i = 0; i < count; i++) {
+        const r = Math.floor(Math.random()*255);
+        const g = Math.floor(Math.random()*255);
+        const b = Math.floor(Math.random()*255);
+        colors.push(`rgba(${r}, ${g}, ${b}, 0.6)`);
+    }
+    return colors;
+}
+
+// -------------------------
+// WRAP LABEL NAMA APLIKASI
+// -------------------------
+function wrapLabel(label) {
+    return label.match(/.{1,14}/g); // potong tiap 14 huruf
+}
+
+// -------------------------
+// BAR CHART APPS (DINAMIS)
+// -------------------------
+var ctxApp = document.getElementById('chartApps');
+
+new Chart(ctxApp, {
     type: 'bar',
     data: {
         labels: <?= json_encode($appNames) ?>,
@@ -94,71 +161,55 @@ while ($row = $statusQuery->fetch_assoc()) {
             label: "Jumlah Laporan",
             data: <?= json_encode($appCounts) ?>,
             borderWidth: 1,
-            backgroundColor: function(context) {
-                const colors = [
-                    "rgba(54, 162, 235, 0.6)",
-                    "rgba(255, 99, 132, 0.6)",
-                    "rgba(255, 205, 86, 0.6)",
-                    "rgba(75, 192, 192, 0.6)",
-                    "rgba(153, 102, 255, 0.6)",
-                    "rgba(255, 159, 64, 0.6)"
-                ];
-                return colors[context.dataIndex % colors.length];
-            },
-            borderColor: function(context) {
-                const borders = [
-                    "rgba(54, 162, 235, 1)",
-                    "rgba(255, 99, 132, 1)",
-                    "rgba(255, 205, 86, 1)",
-                    "rgba(75, 192, 192, 1)",
-                    "rgba(153, 102, 255, 1)",
-                    "rgba(255, 159, 64, 1)"
-                ];
-                return borders[context.dataIndex % borders.length];
-            }
+            backgroundColor: generateColors(<?= count($appNames) ?>)
         }]
     },
     options: {
+        indexAxis: 'y', // <--- INI YANG BIKIN HORISONTAL
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         scales: {
-            x: {
-                ticks: {
-                    maxRotation: 0,
-                    minRotation: 0,
-                    autoSkip: false,
-                    callback: function(value) {
-                        const label = this.getLabelForValue(value);
-                        const maxLength = 14;
-                        if (label.length > maxLength) {
-                            return label.match(new RegExp('.{1,' + maxLength + '}', 'g'));
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0, // HILANGKAN DESIMAL
+                        callback: function(value) {
+                            return Number.isInteger(value) ? value : '';
                         }
-                        return label;
+                    }
+                },
+                y: {
+                    ticks: {
+                        callback: function(value) {
+                            const label = this.getLabelForValue(value);
+                            return label.length > 20 ?
+                                label.substring(0, 20) + "..." :
+                                label;
+                        }
                     }
                 }
-            },
-            y: {
-                beginAtZero: true
             }
-        }
-    },
-    plugins: [FixLabelRotation]
+    }
 });
 
-    var ctxStatus = document.getElementById('chartStatus');
-    new Chart(ctxStatus, {
-        type: 'pie',
-        data: {
-            labels: <?= json_encode($statusLabels) ?>,
-            datasets: [{
-                data: <?= json_encode($statusData) ?>,
-            }]
-        },
-        options: {
-            responsive: true
-        }
-    });
-</script> <?php include '../template_admin/footer.php'; ?>
-<?php
-require_once '../template_admin/footer.php';
-?>
+
+// -------------------------
+// PIE STATUS
+// -------------------------
+var ctxStatus = document.getElementById('chartStatus');
+new Chart(ctxStatus, {
+    type: 'pie',
+    data: {
+        labels: <?= json_encode($statusLabels) ?>,
+        datasets: [{
+            data: <?= json_encode($statusData) ?>,
+            backgroundColor: generateColors(<?= count($statusLabels) ?>)
+        }]
+    },
+    options: {
+        responsive: true
+    }
+});
+</script>
+
+<?php include '../template_admin/footer.php'; ?>

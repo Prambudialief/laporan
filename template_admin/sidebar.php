@@ -74,9 +74,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <div class="collapse" id="collapseLaporan2" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                             <nav class="sb-sidenav-menu-nested nav">
                                 <a class="nav-link <?php if ($current_page == 'daftar_aplikasi.php') echo 'active-menu'; ?>" href="../admin/daftar_aplikasi.php">DAFTAR APLIKASI</a>
-                                <a class="nav-link <?php if ($current_page == 'kansar.php') echo 'active-menu'; ?>" href="../admin/kansar.php">KANSAR</a>
+                                <a class="nav-link <?php if ($current_page == 'kansar.php') echo 'active-menu'; ?>" href="../admin/kansar.php">SATKER</a>
                                 <a class="nav-link <?php if ($current_page == 'unitkerja.php') echo 'active-menu'; ?>" href="../admin/unitkerja.php"> UNIT KERJA</a>
-                                <a class="nav-link <?php if ($current_page == 'permasalahan.php') echo 'active-menu'; ?>" href="../admin/permasalahan.php">PERMASALAHAN</a>
+                                <a class="nav-link <?php if ($current_page == 'master_permasalahan.php') echo 'active-menu'; ?>" href="../admin/master_permasalahan.php">JENIS MASALAH</a>
+                                <a class="nav-link <?php if ($current_page == 'master_pelaporan.php') echo 'active-menu'; ?>" href="../admin/master_pelaporan.php">MEDIA PELAPORAN</a>
+                                <a class="nav-link <?php if ($current_page == 'master_lanjuti.php') echo 'active-menu'; ?>" href="../admin/master_lanjuti.php">TINDAK LANJUTI</a>
                                 <a class="nav-link <?php if ($current_page == 'userHak.php') echo 'active-menu'; ?>" href="../admin/userHak.php">USER (HAK ASES)</a>
                             </nav>
                         </div>

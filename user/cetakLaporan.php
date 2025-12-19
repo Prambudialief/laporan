@@ -10,6 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 require __DIR__ . '/../vendor/autoload.php';
+
 use Dompdf\Dompdf;
 
 $user_id = $_SESSION['user_id'];
@@ -17,6 +18,17 @@ $filter = [];
 
 if ($_SESSION['role'] === 'user') {
     $filter[] = "user_id = " . intval($user_id);
+}
+
+$q = trim($_GET['q'] ?? '');
+if ($q !== '') {
+    $q = mysqli_real_escape_string($conn, $q);
+    $filter[] = "(
+        nama_aplikasi LIKE '%$q%' OR
+        nama_pelapor LIKE '%$q%' OR
+        nama_petugas LIKE '%$q%' OR
+        deskripsi_permasalahan LIKE '%$q%'
+    )";
 }
 
 if (!empty($_GET['nama_aplikasi'])) {
@@ -28,16 +40,37 @@ if (!empty($_GET['cari'])) {
     $cari = mysqli_real_escape_string($conn, $_GET['cari']);
     $filter[] = "(nama_pelapor LIKE '%$cari%' 
                   OR nama_petugas LIKE '%$cari%' 
-                  OR deskripsi_permasalahan LIKE '%$cari%')";
+                  OR deskripsi_permasalahan LIKE '%$cari%'
+                  OR kantor_sar LIKE '%$cari%'
+                  OR unit_kerja LIKE '%$cari%')";
 }
 
-if (!empty($_GET['bulan_mulai']) && !empty($_GET['bulan_selesai'])) {
-    $mulai = $_GET['bulan_mulai'] . "-01";
-    $akhir = date("Y-m-t", strtotime($_GET['bulan_selesai'] . "-01"));
+$status = $_GET['status'] ?? '';
+if ($status !== '') {
+    $status = mysqli_real_escape_string($conn, $status);
+    $filter[] = "status_laporan = '$status'";
+}
+
+if (!empty($_GET['tanggal_mulai']) && !empty($_GET['tanggal_selesai'])) {
+    $mulai = mysqli_real_escape_string($conn, $_GET['tanggal_mulai']);
+    $akhir = mysqli_real_escape_string($conn, $_GET['tanggal_selesai']);
     $filter[] = "DATE(waktu_pelaporan) BETWEEN '$mulai' AND '$akhir'";
 }
 
-$query = "SELECT * FROM laporan";
+$masalah = $_GET['masalah'] ?? '';
+if ($masalah !== '') {
+    $masalah = mysqli_real_escape_string($conn, $masalah);
+    $filter[] = "jenis_permasalahan = '$masalah'";
+}
+$query = "
+SELECT 
+    l.*,
+    ml.nama_lanjuti
+FROM laporan l
+LEFT JOIN master_lanjuti ml 
+    ON l.lanjuti_id = ml.id
+";
+
 if (count($filter) > 0) {
     $query .= " WHERE " . implode(" AND ", $filter);
 }
@@ -85,13 +118,6 @@ th {
 
 <h2 style="text-align:center;">Daftar Laporan</h2>';
 
-$html .= "<p><strong>Filter aktif:</strong></p><ul>";
-
-if (!empty($_GET['nama_aplikasi'])) $html .= "<li>Aplikasi: $nama_aplikasi</li>";
-if (!empty($_GET['cari'])) $html .= "<li>Pencarian: $cari</li>";
-if (!empty($_GET['bulan_mulai']) && !empty($_GET['bulan_selesai']))
-    $html .= "<li>Periode: {$_GET['bulan_mulai']} s/d {$_GET['bulan_selesai']}</li>";
-
 $html .= "</ul><br>";
 
 $html .= '
@@ -99,12 +125,16 @@ $html .= '
 <thead>
   <tr style="background:#f5f5f5; font-weight:bold;  font-family: Calibri, Candara, Segoe, Segoe UI, Optima, Arial, sans-serif;">
     <th>No</th>
-    <th>Tanggal Pelaporan</th>
+    <th>Waktu Pelaporan</th>
+    <th>Waktu Penyelesaian</th>
     <th>Nama Aplikasi</th>
     <th>Nama Pelapor</th>
-    <th>Kantor SAR</th>
+    <th>Satker/Kantor SAR</th>
+    <th>Unit Kerja</th>
     <th>Nama Petugas</th>
+    <th>Nama Lanjuti</th>
     <th>Deskripsi Permasalahan</th>
+    <th>Deskripsi Solusi</th>
     <th>Jenis Permasalahan</th>
     <th>Status</th>
     <th>Durasi</th>
@@ -122,20 +152,26 @@ if ($result && $result->num_rows > 0) {
 
         $durasiFormat = $jam > 0 ? "$jam jam $menit menit" : "$menit menit";
 
+        $namaLanjuti = $row['nama_lanjuti'] ?: '-';
+
         $html .= "<tr>
                 <td>{$no}</td>
                 <td>{$row['waktu_pelaporan']}</td>
+                <td>{$row['tanggal_penyelesaian']}</td>
                 <td>{$row['nama_aplikasi']}</td>
                 <td>{$row['nama_pelapor']}</td>
                 <td>{$row['kantor_sar']}</td>
+                <td>{$row['unit_kerja']}</td>
                 <td>{$row['nama_petugas']}</td>
+                <td>{$namaLanjuti}</td>
                 <td>{$row['deskripsi_permasalahan']}</td>
+                <td>{$row['solusi_permasalahan']}</td>
                 <td>{$row['jenis_permasalahan']}</td>
                 <td>{$row['status_laporan']}</td>
                 <td>{$durasiFormat}</td>
             </tr>";
 
-        $no++; 
+        $no++;
     }
 }
 
@@ -150,6 +186,6 @@ $dompdf->loadHtml($html);
 $dompdf->setPaper('A4', 'landscape');
 $dompdf->render();
 
-// Menampilkan PDF di browser (bukan download otomatis)
-$dompdf->stream("laporan_filtered.pdf", ["Attachment" => false]);
-?>
+// LANGSUNG DOWNLOAD PDF
+$dompdf->stream("daftar_laporan_user.pdf", ["Attachment" => true]);
+exit;

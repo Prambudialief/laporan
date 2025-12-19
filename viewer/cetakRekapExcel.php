@@ -40,7 +40,7 @@ $query .= " GROUP BY nama_aplikasi, jenis_permasalahan, nama_petugas ORDER BY na
 $result = mysqli_query($conn, $query);
 
 header("Content-Type: application/vnd.ms-excel");
-header("Content-Disposition: attachment; filename=rekap_admin_.xls");
+header("Content-Disposition: attachment; filename=rekap_viewer_.xls");
 header("Pragma: no-cache");
 header("Expires: 0");
 

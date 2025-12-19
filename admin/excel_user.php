@@ -5,42 +5,59 @@ if (session_status() === PHP_SESSION_NONE) {
 
 include '../services/connection.php';
 
-$rowsPerPage = 10;
-$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$limit = $_GET['limit'] ?? 10; 
+$page  = isset($_GET['page']) ? intval($_GET['page']) : 1;
 if ($page < 1) $page = 1;
 
-$offset = ($page - 1) * $rowsPerPage;
+// Set header untuk Excel
+header("Content-Type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=laporan_user_admin_page_" . $page . ".xls");
+header("Pragma: no-cache");
+header("Expires: 0");
 
-header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename=laporan_user_page_' . $page . '.csv');
+if ($limit === 'all') {
 
-$output = fopen("php://output", "w");
+    $query = "SELECT nama, email, role FROM user ORDER BY id DESC";
 
-fputcsv($output, [
-    'No',
-    'nama',
-    'email',
-    'role'
-]);
+} else {
 
+    $limit  = intval($limit);
+    $offset = ($page - 1) * $limit;
 
-$query = "SELECT nama, email, role 
-          FROM user 
-          LIMIT $offset, $rowsPerPage";
+    $query = "SELECT nama, email, role
+              FROM user
+              WHERE role IN ('user', 'viewer')
+              ORDER BY id DESC 
+              LIMIT $offset, $limit";
+}
 
 $result = mysqli_query($conn, $query);
 
-$no = $offset + 1;
+// Mulai tabel
+echo "<table border='1'>
+<thead>
+<tr style='background:#d9d9d9; font-weight:bold; text-align:center;'>
+    <th>No</th>
+    <th>Nama</th>
+    <th>Email</th>
+    <th>Role</th>
+</tr>
+</thead>
+<tbody>";
+
+$no = 1;
 
 while ($row = mysqli_fetch_assoc($result)) {
-    fputcsv($output, [
-        $no++,
-        $row['nama'],
-        $row['email'],
-        $row['role']
-    ]);
+    echo "<tr>
+        <td style='text-align:center;'>$no</td>
+        <td>{$row['nama']}</td>
+        <td>{$row['email']}</td>
+        <td>{$row['role']}</td>
+    </tr>";
+    $no++;
 }
 
-fclose($output);
+echo "</tbody></table>";
+
 exit();
 ?>

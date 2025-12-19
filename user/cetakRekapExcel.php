@@ -10,7 +10,8 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-$query = "SELECT nama_aplikasi, 
+$query = "SELECT nama_aplikasi,
+                 jenis_permasalahan,
                  COUNT(*) AS total_masuk,
                  SUM(CASE WHEN status_laporan = 'Selesai' THEN 1 ELSE 0 END) AS total_selesai,
                  ROUND(AVG(durasi), 2) AS rata_durasi,
@@ -20,34 +21,21 @@ $query = "SELECT nama_aplikasi,
 $filter = [];
 $filter[] = "user_id = '$user_id'";
 
-if (!empty($_GET['judul_laporan'])) {
-  $tgl = mysqli_real_escape_string($conn, $_GET['judul_laporan']);
-  $filter[] = "DATE(waktu_pelaporan) = '$tgl'";
-}
-
-if (!empty($_GET['tahun'])) {
-  $tahun = mysqli_real_escape_string($conn, $_GET['tahun']);
-  $filter[] = "YEAR(waktu_pelaporan) = '$tahun'";
-}
-
-if (!empty($_GET['status_laporan'])) {
-  $status = mysqli_real_escape_string($conn, $_GET['status_laporan']);
-  $filter[] = "status_laporan = '$status'";
-}
+$filter[] = "status_laporan = 'Selesai'";
 
 if (!empty($_GET['nama_aplikasi'])) {
   $app = mysqli_real_escape_string($conn, $_GET['nama_aplikasi']);
   $filter[] = "nama_aplikasi = '$app'";
 }
 
-if (!empty($_GET['petugas'])) {
-  $petugas = mysqli_real_escape_string($conn, $_GET['petugas']);
-  $filter[] = "nama_petugas LIKE '%$petugas%'";
+if (!empty($_GET['masalah'])) {
+    $mslh = mysqli_real_escape_string($conn, $_GET['masalah']);
+    $filter[] = "jenis_permasalahan = '$mslh'";
 }
 
-if (!empty($_GET['bulan_mulai']) && !empty($_GET['bulan_selesai'])) {
-  $mulai = $_GET['bulan_mulai'] . "-01";
-  $akhir = date("Y-m-t", strtotime($_GET['bulan_selesai'] . "-01"));
+if (!empty($_GET['tanggal_mulai']) && !empty($_GET['tanggal_selesai'])) {
+  $mulai = mysqli_real_escape_string($conn, $_GET['tanggal_mulai']);
+  $akhir = mysqli_real_escape_string($conn, $_GET['tanggal_selesai']);
   $filter[] = "DATE(waktu_pelaporan) BETWEEN '$mulai' AND '$akhir'";
 }
 
@@ -55,12 +43,12 @@ if (count($filter) > 0) {
   $query .= " WHERE " . implode(" AND ", $filter);
 }
 
-$query .= " GROUP BY nama_aplikasi, nama_petugas ORDER BY nama_aplikasi ASC";
+$query .= " GROUP BY nama_aplikasi,  jenis_permasalahan, nama_petugas ORDER BY nama_aplikasi ASC";
 
 $result = mysqli_query($conn, $query);
 
 header("Content-Type: application/vnd.ms-excel");
-header("Content-Disposition: attachment; filename=rekap_user_$user_id.xls");
+header("Content-Disposition: attachment; filename=rekap_admin_$user_id.xls");
 header("Pragma: no-cache");
 header("Expires: 0");
 
@@ -68,6 +56,7 @@ echo "<table border='1'>
 <thead>
 <tr style='background:#d9d9d9; font-weight:bold; text-align:center;'>
     <th>Nama Aplikasi</th>
+    <th>Jenis Permasalahan</th>
     <th>Jumlah Masuk</th>
     <th>Selesai</th>
     <th>Rata Durasi</th>
@@ -90,6 +79,7 @@ while ($row = mysqli_fetch_assoc($result)) {
 
     echo "<tr>
         <td>{$row['nama_aplikasi']}</td>
+        <td>{$row['jenis_permasalahan']}</td>
         <td>{$row['total_masuk']}</td>
         <td>{$row['total_selesai']}</td>
         <td>{$durasiFormat}</td>

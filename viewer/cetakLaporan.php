@@ -179,6 +179,6 @@ $dompdf->setPaper('A4', 'landscape');
 $dompdf->render();
 
 // LANGSUNG DOWNLOAD PDF
-$dompdf->stream("daftar_laporan_admin.pdf", ["Attachment" => true]);
+$dompdf->stream("daftar_laporan_viewer.pdf", ["Attachment" => true]);
 exit;
 ?>

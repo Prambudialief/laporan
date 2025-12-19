@@ -8,7 +8,8 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Dompdf\Dompdf;
 
-$query = "SELECT nama_aplikasi, 
+$query = "SELECT nama_aplikasi,
+                 jenis_permasalahan,
                  COUNT(*) AS total_masuk,
                  SUM(CASE WHEN status_laporan = 'Selesai' THEN 1 ELSE 0 END) AS total_selesai,
                  ROUND(AVG(durasi), 2) AS rata_durasi,
@@ -16,34 +17,21 @@ $query = "SELECT nama_aplikasi,
           FROM laporan";
 $filter = [];
 
-if (!empty($_GET['judul_laporan'])) {
-  $tgl = mysqli_real_escape_string($conn, $_GET['judul_laporan']);
-  $filter[] = "DATE(waktu_pelaporan) = '$tgl'";
-}
-
-if (!empty($_GET['tahun'])) {
-  $tahun = mysqli_real_escape_string($conn, $_GET['tahun']);
-  $filter[] = "YEAR(waktu_pelaporan) = '$tahun'";
-}
-
-if (!empty($_GET['status_laporan'])) {
-  $status = mysqli_real_escape_string($conn, $_GET['status_laporan']);
-  $filter[] = "status_laporan = '$status'";
-}
+$filter[] = "status_laporan = 'Selesai'";
 
 if (!empty($_GET['nama_aplikasi'])) {
   $app = mysqli_real_escape_string($conn, $_GET['nama_aplikasi']);
   $filter[] = "nama_aplikasi = '$app'";
 }
 
-if (!empty($_GET['petugas'])) {
-  $petugas = mysqli_real_escape_string($conn, $_GET['petugas']);
-  $filter[] = "nama_petugas LIKE '%$petugas%'";
+if (!empty($_GET['masalah'])) {
+  $mslh = mysqli_real_escape_string($conn, $_GET['masalah']);
+  $filter[] = "jenis_permasalahan = '$mslh'";
 }
 
-if (!empty($_GET['bulan_mulai']) && !empty($_GET['bulan_selesai'])) {
-  $mulai = $_GET['bulan_mulai'] . "-01";
-  $akhir = date("Y-m-t", strtotime($_GET['bulan_selesai'] . "-01"));
+if (!empty($_GET['tanggal_mulai']) && !empty($_GET['tanggal_selesai'])) {
+  $mulai = mysqli_real_escape_string($conn, $_GET['tanggal_mulai']);
+  $akhir = mysqli_real_escape_string($conn, $_GET['tanggal_selesai']);
   $filter[] = "DATE(waktu_pelaporan) BETWEEN '$mulai' AND '$akhir'";
 }
 
@@ -51,7 +39,7 @@ if (count($filter) > 0) {
   $query .= " WHERE " . implode(" AND ", $filter);
 }
 
-$query .= " GROUP BY nama_aplikasi, nama_petugas ORDER BY nama_aplikasi ASC";
+$query .= " GROUP BY nama_aplikasi, jenis_permasalahan, nama_petugas ORDER BY nama_aplikasi ASC";
 
 $result = mysqli_query($conn, $query);
 
@@ -99,6 +87,7 @@ $html .= "<table border='1' cellspacing='0' cellpadding='5' width='100%'>
   <tr style='background:#f0f0f0;'>
     <th>No</th>
     <th>Nama Aplikasi</th>
+    <th>Jenis Permasalahan</th>
     <th>Jumlah Laporan Masuk</th>
     <th>Laporan Selesai</th>
     <th>Rata-Rata Durasi</th>
@@ -124,6 +113,7 @@ if ($result && $result->num_rows > 0) {
   <tr>
       <td>{$no}</td>
       <td>{$row['nama_aplikasi']}</td>
+      <td>{$row['jenis_permasalahan']}</td>
       <td>{$row['total_masuk']}</td>
       <td>{$row['total_selesai']}</td>
       <td>{$durasiFormat}</td>
@@ -144,5 +134,8 @@ $dompdf->loadHtml($html);
 $dompdf->setPaper('A4', 'landscape');
 $dompdf->render();
 
-$dompdf->stream("rekap_user_.pdf",["Attachment" => false]);
+// LANGSUNG DOWNLOAD PDF
+$dompdf->stream("rekap_admin.pdf", ["Attachment" => true]);
+exit;
+
 ?>

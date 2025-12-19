@@ -1,28 +1,134 @@
 <?php
 session_start();
+include '../services/connection.php';
+
+if (isset($_POST['add'])) {
+    $nama = mysqli_real_escape_string($conn, $_POST['unit_kerja']);
+    mysqli_query($conn, "INSERT INTO master_unit_kerja (unit_kerja) VALUES ('$nama')");
+    header("Location: unitKerja.php");
+    exit();
+}
+
+// ==== LOGIKA PROSES EDIT ====
+if (isset($_POST['edit'])) {
+    $id   = intval($_POST['id']);
+    $nama = mysqli_real_escape_string($conn, $_POST['unit_kerja']);
+    mysqli_query($conn, "UPDATE master_unit_kerja SET unit_kerja='$nama' WHERE id=$id");
+    header("Location: unitKerja.php");
+    exit();
+}
+
+// ==== LOGIKA PROSES HAPUS ====
+if (isset($_GET['delete'])) {
+    $id = intval($_GET['delete']);
+    mysqli_query($conn, "DELETE FROM master_unit_kerja WHERE id=$id");
+    header("Location: unitKerja.php");
+    exit();
+}
 require_once '../template_admin/header.php';
 require_once '../template_admin/navbar.php';
 require_once '../template_admin/sidebar.php';
+$unit = mysqli_query($conn, "SELECT * FROM master_unit_kerja ORDER BY id DESC");
 ?>
 <div class="container mt-4">
 
-<h5 class="fw-bold mb-3">Daftar Unit Kerja</h5>
-
-<a id="exportExcel" href="excel_unitkerja.php" class="btn btn-outline-success mb-1 mt-1"> Export By Excel</a>
-
+<h3 class="fw-bold mb-3 text-center">Daftar Unit Kerja</h3>
+<a data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-outline-primary mb-1 mt-1">Tambah Unit Kerja</a>
+<a id="exportBtn" class="btn btn-outline-success mb-1 mt-1"> Export By Excel</a>
+<div class="row mb-3">
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">Tampilkan</label>
+            <select id="rowsSelect" class="form-select">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="all">Semua</option>
+            </select>
+        </div>
+    </div>
 <div class="table-responsive">
     <table class="table table-bordered table-striped align-middle text-center">
         <thead class="table-dark">
             <tr>
                 <th>No</th>
                 <th>Kantor Unit Kerja</th>
+                <th>Aksi</th>
             </tr>
         </thead>
-        <tbody id="appTable">
-            <!-- Data akan di-load dengan JavaScript -->
-        </tbody>
+        <tbody id="table-data">
+                <?php
+                $no = 1;
+                while ($row = mysqli_fetch_assoc($unit)) { ?>
+
+                    <tr>
+                        <td><?= $no++ ?></td>
+                        <td class="text-start"><?= htmlspecialchars($row['unit_kerja']) ?></td>
+                        <td>
+                            <button class="btn btn-outline-warning"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEdit"
+                                data-id="<?= $row['id'] ?>"
+                                data-nama="<?= htmlspecialchars($row['unit_kerja']) ?>">
+                                Edit
+                            </button>
+                            <a href="?delete=<?= $row['id'] ?>"
+                                onclick="return confirm('Yakin Ingin Menghapus unit kerja ini?')"
+                                class="btn btn-outline-danger">Hapus
+                            </a>
+                        </td>
+                    </tr>
+
+                <?php
+                }
+                ?>
+            </tbody>
     </table>
 </div>
+<div class="modal fade" id="modalTambah" tabindex="-1">
+        <div class="modal-dialog">
+            <form method="POST" class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Tambah Unit Kerja</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <label class="form-label">Nama Unit Kerja</label>
+                    <input type="text" name="unit_kerja" class="form-control" required>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" name="add" class="btn btn-primary">Simpan</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ========== MODAL EDIT ========== -->
+    <div class="modal fade" id="modalEdit" tabindex="-1">
+        <div class="modal-dialog">
+            <form method="POST" class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">Edit Unit Kerja</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="edit-id">
+
+                    <label class="form-label">Nama Unit Kerja</label>
+                    <input type="text" name="unit_kerja" id="edit-nama" class="form-control" required>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" name="edit" class="btn btn-warning">Update</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 <!-- Pagination -->
 <nav>
@@ -33,80 +139,75 @@ require_once '../template_admin/sidebar.php';
 
 </div>
 <script>
-    // Data aplikasi (ambil dari option yang kamu berikan)
-    const aplikasi = [
-                    "Humas",
-                    "Pusdatin",
-                    "ULP",
-                    "Kepegawain",
-                    "Perencanaan",
-                    "Biro Hukum & Kepegawain",
-                    "Dit. Operasi dan Dit. Kesiapsiagaan",
-                    "Biro Umum",
-                    "Inspektorat",
-                    "Balai Diklat & Puslat SDM",
-                    "Dit Kesiapsiagaan",
-                    "Biro Humas dan Umum",
-                    "Dit. Binpot",
-                    "Dit. Operasi",
-                    "Dit. Komunikasi",
-                    "Perencanaan KTLN",
-                    "Biro Kepegawaian & Ortala",
-                    "Dharma Wanita Persatuan",
-                    "Deputi Bidang Operasi Pencarian dan Pertolongan, dan kesiapsiagaan"
-    ];
+    var modalEdit = document.getElementById('modalEdit');
+    modalEdit.addEventListener('show.bs.modal', function(event) {
+        var button = event.relatedTarget;
+        var id = button.getAttribute('data-id');
+        var nama = button.getAttribute('data-nama');
 
-    const rowsPerPage = 10;
+        document.getElementById('edit-id').value = id;
+        document.getElementById('edit-nama').value = nama;
+    });
+</script>
+<script>
+   let rowsPerPage = 10;
     let currentPage = 1;
 
-    function renderTable(page = 1) {
-        const tableBody = document.getElementById("appTable");
-        tableBody.innerHTML = "";
+    const tableData = document.querySelectorAll("#table-data tr");
+    const totalRows = tableData.length;
+
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+
+    function showPage(page) {
+        currentPage = page;
 
         let start = (page - 1) * rowsPerPage;
-        let end = start + rowsPerPage;
+        let end = rowsPerPage === totalRows ? totalRows : start + rowsPerPage;
 
-        aplikasi.slice(start, end).forEach((app, index) => {
-            tableBody.innerHTML += `
-                <tr>
-                    <td>${start + index + 1}</td>
-                    <td>${app}</td>
-                </tr>
-            `;
+        tableData.forEach((row, index) => {
+            row.style.display = (index >= start && index < end) ? "" : "none";
         });
+
+        renderPagination();
     }
 
     function renderPagination() {
-        const totalPages = Math.ceil(aplikasi.length / rowsPerPage);
         const pagination = document.getElementById("pagination");
-
         pagination.innerHTML = "";
+
+        if (rowsPerPage === totalRows) return; // jika ALL → pagination disembunyikan
+
+        const totalPages = Math.ceil(totalRows / rowsPerPage);
 
         for (let i = 1; i <= totalPages; i++) {
             pagination.innerHTML += `
-                <li class="page-item ${i === currentPage ? "active" : ""}">
-                    <button class="page-link" onclick="goToPage(${i})">${i}</button>
-                </li>
-            `;
+            <li class="page-item ${i === currentPage ? "active" : ""}">
+                <button class="page-link" onclick="showPage(${i})">${i}</button>
+            </li>
+        `;
         }
     }
 
-    function goToPage(page) {
-        currentPage = page;
-        renderTable(page);
-        renderPagination();
-        updateExportLink();
-    }
+    document.getElementById("rowsSelect").addEventListener("change", function() {
+        const value = this.value;
 
-    function updateExportLink() {
-        document.getElementById("exportExcel").href=
-        "excel_unitkerja.php?page=" + currentPage;
-    }
+        if (value === "all") {
+            rowsPerPage = totalRows;
+        } else {
+            rowsPerPage = parseInt(value);
+        }
 
-    // Load awal
-    renderTable();
-    renderPagination();
-    updateExportLink();
+        currentPage = 1;
+        showPage(currentPage);
+    });
+
+    // Show first page when loading
+    showPage(1);
+
+    document.getElementById("exportBtn").addEventListener("click", function() {
+        let limit = document.getElementById("rowsSelect").value;
+        window.location.href = "excel_unitkerja.php?limit=" + limit + "&page=" + currentPage;
+    });
 </script>
 
 

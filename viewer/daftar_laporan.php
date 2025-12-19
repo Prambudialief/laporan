@@ -1,8 +1,12 @@
 <?php
 session_start();
-include '../template_admin/header.php';
-include '../template_admin/navbar.php';
-include '../template_admin/sidebar.php';
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'viewer') {
+    header("Location: ../auth/login.php");
+    exit;
+}
+include '../template_viewer/header.php';
+include '../template_viewer/navbar.php';
+include '../template_viewer/sidebar.php';
 include '../services/connection.php';
 
 // LOAD master aplikasi untuk filter
@@ -224,7 +228,6 @@ if ($mslhQuery && $mslhQuery->num_rows > 0) {
                                 <th>Jenis Permasalahan</th>
                                 <th>Status</th>
                                 <th>Durasi</th>
-                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -274,23 +277,11 @@ if ($mslhQuery && $mslhQuery->num_rows > 0) {
                                         <td>" . htmlspecialchars($row['solusi_permasalahan']) . "</td>
                                         <td>" . htmlspecialchars($row['jenis_permasalahan']) . "</td>
                                         <td>" . htmlspecialchars($row['status_laporan']) . "</td>
-                                        <td>$durasiFormat</td>
-                                        <td>";
-
-                                    if ($status === 'Selesai') {
-                                        echo "<button class='btn btn-sm btn-secondary mb-1 w-100 w-md-auto' disabled>Edit</button>";
-                                    } else {
-                                        echo "<a href='edit_laporan.php?id={$row['id']}' class='btn btn-sm btn-warning mb-1 w-100 w-md-auto'>Edit</a>";
-                                    }
-
-                                    echo " <a href='hapus_laporan.php?id={$row['id']}' class='btn btn-sm btn-danger w-100 w-md-auto' onclick='return confirm(\"Yakin ingin menghapus laporan ini?\")'>Hapus</a>
-                                        </td>
-                                    </tr>";
-
+                                        <td>$durasiFormat</td>";
                                     $no++;
                                 }
                             } else {
-                                echo "<tr><td colspan='11' class='text-center'>Belum ada laporan.</td></tr>";
+                                echo "<tr><td colspan='15' class='text-center'>Belum ada laporan.</td></tr>";
                             }
                             ?>
                         </tbody>
@@ -326,4 +317,4 @@ if ($mslhQuery && $mslhQuery->num_rows > 0) {
     </div>
 </div>
 
-<?php include '../template_admin/footer.php'; ?>
+<?php include '../template_viewer/footer.php'; ?>

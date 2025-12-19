@@ -3,12 +3,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-include '../template/header.php';
-include '../template/navbar.php';
-include '../template/sidebar.php';
+include '../template_viewer/header.php';
+include '../template_viewer/navbar.php';
+include '../template_viewer/sidebar.php';
 include '../services/connection.php';
 
-$user_id = $_SESSION['user_id'];
 
 // --- Ambil daftar aplikasi ---
 $appList = [];
@@ -26,6 +25,7 @@ if ($mslhQuery && $mslhQuery->num_rows > 0) {
         $mslhList[] = $row['jenis_permasalahan'];
     }
 }
+
 
 function getFilter($key)
 {
@@ -52,12 +52,9 @@ $query = "
     FROM laporan
 ";
 
-
 $filter = [];
-$filter[] = "user_id = '$user_id'";
 $filter[] = "status_laporan = 'Selesai'";
 
-// Filter aplikasi
 if ($nama_aplikasi !== '') {
     $app = mysqli_real_escape_string($conn, $nama_aplikasi);
     $filter[] = "nama_aplikasi = '$app'";
@@ -68,7 +65,7 @@ if ($masalah !== '') {
     $filter[] = "jenis_permasalahan = '$mslh'";
 }
 
-// Filter tanggal mulai
+// Filter tanggal mulai 
 $tanggal_mulai = $_POST['tanggal_mulai'] ?? $_GET['tanggal_mulai'] ?? '';
 $tanggal_selesai = $_POST['tanggal_selesai'] ?? $_GET['tanggal_selesai'] ?? '';
 if ($tanggal_mulai !== '' && $tanggal_selesai !== '') {
@@ -135,7 +132,7 @@ $result = mysqli_query($conn, $query);
 
                     <div class="col-lg-4 col-md-6 col-sm-12">
                         <label class="form-label fw-semibold">Aplikasi</label>
-                        <select name="nama_aplikasi" class="form-select w-100">
+                        <select name="nama_aplikasi" class="form-select">
                             <option value="">-- Pilih Aplikasi --</option>
                             <?php
                             foreach ($appList as $app) {
@@ -145,7 +142,6 @@ $result = mysqli_query($conn, $query);
                             ?>
                         </select>
                     </div>
-
                     <div class="col-lg-4 col-md-6 col-sm-12">
                         <label class="form-label fw-semibold">Jenis Permasalahan</label>
                         <select name="masalah" class="form-select w-100">
@@ -158,7 +154,6 @@ $result = mysqli_query($conn, $query);
                             ?>
                         </select>
                     </div>
-
                     <div class="col-lg-3 col-md-8 col-sm-12">
 
                         <div class="d-flex flex-wrap gap-2">
@@ -258,4 +253,4 @@ $result = mysqli_query($conn, $query);
     </div>
 </div>
 
-<?php include '../template/footer.php'; ?>
+<?php include '../template_viewer/footer.php'; ?>

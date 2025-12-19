@@ -1,45 +1,41 @@
 <?php
-session_start();
 include '../services/connection.php';
 
-// ==== LOGIKA PROSES TAMBAH ====
+// ==== LOGIKA TAMBAH ====
 if (isset($_POST['add'])) {
-    $nama = mysqli_real_escape_string($conn, $_POST['nama_aplikasi']);
-    mysqli_query($conn, "INSERT INTO master_aplikasi (nama_aplikasi) VALUES ('$nama')");
-    header("Location: daftar_aplikasi.php");
+    $nama = mysqli_real_escape_string($conn, $_POST['jenis_permasalahan']);
+    mysqli_query($conn, "INSERT INTO master_permasalahan (jenis_permasalahan) VALUES ('$nama')");
+    header("Location: master_permasalahan.php");
     exit();
 }
 
-// ==== LOGIKA PROSES EDIT ====
+// ==== LOGIKA EDIT ====
 if (isset($_POST['edit'])) {
     $id   = intval($_POST['id']);
-    $nama = mysqli_real_escape_string($conn, $_POST['nama_aplikasi']);
-    mysqli_query($conn, "UPDATE master_aplikasi SET nama_aplikasi='$nama' WHERE id=$id");
-    header("Location: daftar_aplikasi.php");
+    $nama = mysqli_real_escape_string($conn, $_POST['jenis_permasalahan']);
+    mysqli_query($conn, "UPDATE master_permasalahan SET jenis_permasalahan='$nama' WHERE id=$id");
+    header("Location: master_permasalahan.php");
     exit();
 }
 
-// ==== LOGIKA PROSES HAPUS ====
+// ==== LOGIKA HAPUS ====
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
-    mysqli_query($conn, "DELETE FROM master_aplikasi WHERE id=$id");
-    header("Location: daftar_aplikasi.php");
+    mysqli_query($conn, "DELETE FROM master_permasalahan WHERE id=$id");
+    header("Location: master_permasalahan.php");
     exit();
 }
 
-require_once '../template_admin/header.php';
-require_once '../template_admin/navbar.php';
-require_once '../template_admin/sidebar.php';
-
-$aplikasi = mysqli_query($conn, "SELECT * FROM master_aplikasi ORDER BY id DESC");
-
+include '../template_admin/header.php';
+include '../template_admin/navbar.php';
+include '../template_admin/sidebar.php';
+$masalah = mysqli_query($conn, "SELECT * FROM master_permasalahan ORDER BY id DESC");
 ?>
-
 <div class="container mt-4">
 
-    <h3 class="fw-bold mb-3 text-center">Daftar Aplikasi</h3>
-    <a data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-outline-primary mt-1 mb-1">Tambah Aplikasi</a>
-    <a id="exportBtn" class="btn btn-outline-success mt-1 mb-1">Export By Excel</a>
+    <h3 class="fw-bold mb-3 text-center">Jenis Permasalahan</h3>
+    <a data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-outline-primary mb-1 mt-1">Tambah Jenis Permasalahan</a>
+    <a id="exportBtn" class="btn btn-outline-success mb-1">Export by Excel</a>
     <div class="row mb-3">
         <div class="col-md-3">
             <label class="form-label fw-semibold">Tampilkan</label>
@@ -56,28 +52,28 @@ $aplikasi = mysqli_query($conn, "SELECT * FROM master_aplikasi ORDER BY id DESC"
             <thead class="table-dark">
                 <tr>
                     <th>No</th>
-                    <th>Nama Aplikasi</th>
+                    <th>Jenis Permasalahan</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
             <tbody id="table-data">
                 <?php
                 $no = 1;
-                while ($row = mysqli_fetch_assoc($aplikasi)) { ?>
+                while ($row = mysqli_fetch_assoc($masalah)) { ?>
 
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td class="text-start"><?= htmlspecialchars($row['nama_aplikasi']) ?></td>
+                        <td class="text-start"><?= htmlspecialchars($row['jenis_permasalahan']) ?></td>
                         <td>
                             <button class="btn btn-outline-warning"
                                 data-bs-toggle="modal"
                                 data-bs-target="#modalEdit"
                                 data-id="<?= $row['id'] ?>"
-                                data-nama="<?= htmlspecialchars($row['nama_aplikasi']) ?>">
+                                data-nama="<?= htmlspecialchars($row['jenis_permasalahan']) ?>">
                                 Edit
                             </button>
                             <a href="?delete=<?= $row['id'] ?>"
-                                onclick="return confirm('Yakin Ingin Menghapus Aplikasi Ini?')"
+                                onclick="return confirm('Yakin Ingin Menghapus Permasalahan Ini?')"
                                 class="btn btn-outline-danger">Hapus
                             </a>
                         </td>
@@ -93,13 +89,13 @@ $aplikasi = mysqli_query($conn, "SELECT * FROM master_aplikasi ORDER BY id DESC"
         <div class="modal-dialog">
             <form method="POST" class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Tambah Aplikasi</h5>
+                    <h5 class="modal-title">Tambah Jenis Permasalahan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
-                    <label class="form-label">Nama Aplikasi</label>
-                    <input type="text" name="nama_aplikasi" class="form-control" required>
+                    <label class="form-label">Nama Jenis Permasalahan</label>
+                    <input type="text" name="jenis_permasalahan" class="form-control" required>
                 </div>
 
                 <div class="modal-footer">
@@ -116,15 +112,15 @@ $aplikasi = mysqli_query($conn, "SELECT * FROM master_aplikasi ORDER BY id DESC"
         <div class="modal-dialog">
             <form method="POST" class="modal-content">
                 <div class="modal-header bg-warning">
-                    <h5 class="modal-title">Edit Aplikasi</h5>
+                    <h5 class="modal-title">Edit Jenis Permasalahan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
                     <input type="hidden" name="id" id="edit-id">
 
-                    <label class="form-label">Nama Aplikasi</label>
-                    <input type="text" name="nama_aplikasi" id="edit-nama" class="form-control" required>
+                    <label class="form-label">Nama Jenis Permasalahan</label>
+                    <input type="text" name="jenis_permasalahan" id="edit-nama" class="form-control" required>
                 </div>
 
                 <div class="modal-footer">
@@ -134,13 +130,12 @@ $aplikasi = mysqli_query($conn, "SELECT * FROM master_aplikasi ORDER BY id DESC"
             </form>
         </div>
     </div>
-    <!-- Pagination -->
+
     <nav>
         <ul class="pagination justify-content-center" id="pagination">
             <!-- Auto generate -->
         </ul>
     </nav>
-
 </div>
 <script>
     var modalEdit = document.getElementById('modalEdit');
@@ -154,7 +149,7 @@ $aplikasi = mysqli_query($conn, "SELECT * FROM master_aplikasi ORDER BY id DESC"
     });
 </script>
 <script>
-    let rowsPerPage = 10;
+   let rowsPerPage = 10;
     let currentPage = 1;
 
     const tableData = document.querySelectorAll("#table-data tr");
@@ -175,7 +170,6 @@ $aplikasi = mysqli_query($conn, "SELECT * FROM master_aplikasi ORDER BY id DESC"
         renderPagination();
     }
 
-
     function renderPagination() {
         const pagination = document.getElementById("pagination");
         pagination.innerHTML = "";
@@ -192,6 +186,7 @@ $aplikasi = mysqli_query($conn, "SELECT * FROM master_aplikasi ORDER BY id DESC"
         `;
         }
     }
+
     document.getElementById("rowsSelect").addEventListener("change", function() {
         const value = this.value;
 
@@ -204,20 +199,15 @@ $aplikasi = mysqli_query($conn, "SELECT * FROM master_aplikasi ORDER BY id DESC"
         currentPage = 1;
         showPage(currentPage);
     });
-
-
     // Show first page when loading
     showPage(1);
 
-    document.getElementById("exportBtn").addEventListener("click", function () {
-    let limit = document.getElementById("rowsSelect").value;
-    window.location.href = "excel_aplikasi.php?limit=" + limit + "&page=" + currentPage;
-});
-
+    document.getElementById("exportBtn").addEventListener("click", function() {
+        let limit = document.getElementById("rowsSelect").value;
+        window.location.href = "excel_jenis_masalah.php?limit=" + limit + "&page=" + currentPage;
+    });
 </script>
 
-
-
 <?php
-require_once '../template_admin/footer.php';
+include '../template_admin/footer.php';
 ?>

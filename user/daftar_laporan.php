@@ -3,6 +3,24 @@ session_start();
 include '../template/header.php';
 include '../template/navbar.php';
 include '../template/sidebar.php';
+include "../services/connection.php";
+
+// LOAD master aplikasi untuk filter
+$appList = [];
+$appQuery = $conn->query("SELECT nama_aplikasi FROM master_aplikasi ORDER BY nama_aplikasi ASC");
+if ($appQuery && $appQuery->num_rows > 0) {
+    while ($row = $appQuery->fetch_assoc()) {
+        $appList[] = $row['nama_aplikasi'];
+    }
+}
+
+$mslhList = [];
+$mslhQuery = $conn->query("SELECT DISTINCT jenis_permasalahan FROM laporan ORDER BY jenis_permasalahan ASC");
+if ($mslhQuery && $mslhQuery->num_rows > 0) {
+    while ($row = $mslhQuery->fetch_assoc()) {
+        $mslhList[] = $row['jenis_permasalahan'];
+    }
+}
 ?>
 
 <style>
@@ -21,22 +39,66 @@ include '../template/sidebar.php';
 </style>
 
 <div class="container-fluid mt-4">
-    <h3 class="fw-bold mb-3 text-center text-md-start">Daftar Laporan</h3>
+    <h3 class="fw-bold mb-3 text-center">Daftar Laporan</h3>
 
     <div class="card shadow-sm">
         <div class="card-body form-container">
             <form action="" method="POST" enctype="multipart/form-data" class="p-3 bg-light rounded">
                 <div class="row g-3">
-
                     <div class="col-lg-3 col-md-4 col-sm-6">
-                        <label class="form-label fw-semibold">Bulan Awal</label>
-                        <input type="month" class="form-control" name="bulan_mulai" value="<?= $_POST['bulan_mulai'] ?? '' ?>">
-                        <label class="form-label fw-semibold">Bulan Akhir</label>
-                        <input type="month" class="form-control" name="bulan_selesai" value="<?= $_POST['bulan_selesai'] ?? '' ?>">
+                        <label class="form-label fw-semibold">Waktu Awal</label>
+                        <input type="date" class="form-control" name="tanggal_mulai"
+                            value="<?= $_POST['tanggal_mulai'] ?? $_GET['tanggal_mulai'] ?? '' ?>">
+
+                        <label class="form-label fw-semibold">Waktu Akhir</label>
+                        <input type="date" class="form-control" name="tanggal_selesai"
+                            value="<?= $_POST['tanggal_selesai'] ?? $_GET['tanggal_selesai'] ?? '' ?>">
+                    </div>
+                    <div class="col-lg-3 col-md-8 col-sm-12">
+                        <label class="form-label fw-semibold">Nama Aplikasi</label>
+                        <select class="form-select w-100" name="nama_aplikasi" style="max-height: 200px; overflow-y: auto;">
+                            <option value="">-- Pilih Aplikasi --</option>
+                            <?php
+                            $selectedApp = $_POST['nama_aplikasi'] ?? $_GET['nama_aplikasi'] ?? '';
+                            foreach ($appList as $app) {
+                                $sel = ($selectedApp === $app) ? 'selected' : '';
+                                echo "<option value='" . htmlspecialchars($app) . "' $sel>" . htmlspecialchars($app) . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6 col-sm-12">
+                        <label class="form-label fw-semibold">Jenis Permasalahan</label>
+                        <select name="masalah" class="form-select w-100">
+                            <option value="">-- Pilih Permasalahan --</option>
+                            <?php
+                            foreach ($mslhList as $mslh) {
+                                $selected = ($masalah === $mslh) ? 'selected' : '';
+                                echo "<option value='" . htmlspecialchars($mslh) . "' $selected>" . htmlspecialchars($mslh) . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6 col-sm-12">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="">-- Pilih Status --</option>
+                            <option value="Pending" <?= (($selectedStatus ?? '') === 'Pending') ? 'selected' : '' ?>>Pending</option>
+                            <option value="Proses" <?= (($selectedStatus ?? '') === 'Proses') ? 'selected' : '' ?>>Proses</option>
+                            <option value="Selesai" <?= (($selectedStatus ?? '') === 'Selesai') ? 'selected' : '' ?>>Selesai</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6 col-sm-12">
+                        <label class="form-label fw-semibold">Cari</label>
+                        <input type="text" class="form-control" name="cari" placeholder="Cari data..." value="<?= $_POST['cari'] ?? $_GET['cari'] ?? '' ?>">
+                    </div>
+
+                    <div class="col-lg-3 col-md-8 col-sm-12">
                         <button type="submit" class="btn btn-outline-primary w-100 mt-1 mb-2">Tampilkan</button>
+
                         <button
                             type="submit"
-                            formaction="cetakLaporan.php?bulan_mulai=<?= $_POST['bulan_mulai'] ?? '' ?>&bulan_selesai=<?= $_POST['bulan_selesai'] ?? '' ?>&nama_aplikasi=<?= $_POST['nama_aplikasi'] ?? '' ?>&cari=<?= $_POST['cari'] ?? '' ?>"
+                            formaction="cetakLaporan.php?tanggal_mulai=<?= $_POST['tanggal_mulai'] ?? '' ?>&tanggal_selesai=<?= $_POST['tanggal_selesai'] ?? '' ?>&q=<?= urlencode($_GET['q'] ?? '') ?>&nama_aplikasi=<?= urlencode($_POST['nama_aplikasi'] ?? '') ?>&masalah=<?= $_POST['masalah'] ?? '' ?>&status=<?= $_POST['status'] ?? '' ?>&cari=<?= $_POST['cari'] ?? '' ?>"
                             formtarget="_blank"
                             class="btn btn-outline-danger w-100 mt-1 mb-2">
                             PDF
@@ -44,107 +106,88 @@ include '../template/sidebar.php';
 
                         <button
                             type="submit"
-                            formaction="cetakExcel.php?bulan_mulai=<?= $_POST['bulan_mulai'] ?? '' ?>&bulan_selesai=<?= $_POST['bulan_selesai'] ?? '' ?>&nama_aplikasi=<?= $_POST['nama_aplikasi'] ?? '' ?>&cari=<?= $_POST['cari'] ?? '' ?>"
+                            formaction="cetakExcel.php?tanggal_mulai=<?= $_POST['tanggal_mulai'] ?? '' ?>&tanggal_selesai=<?= $_POST['tanggal_selesai'] ?? '' ?>&q=<?= urlencode($_GET['q'] ?? '') ?>&nama_aplikasi=<?= urlencode($_POST['nama_aplikasi'] ?? '') ?>&masalah=<?= $_POST['masalah'] ?? '' ?>&status=<?= $_POST['status'] ?? '' ?>&cari=<?= $_POST['cari'] ?? '' ?>"
                             formtarget="_blank"
                             class="btn btn-outline-success w-100 mt-1 mb-2">
                             Excel
                         </button>
-
-                    </div>
-
-                    <div class="col-lg-5 col-md-8 col-sm-12">
-                        <label class="form-label fw-semibold">Nama Aplikasi</label>
-                        <select class="form-select" name="nama_aplikasi" size="5" style="max-height: 200px; overflow-y: auto;">
-                            <option value="">-- Pilih Aplikasi --</option>
-                            <option value="Aplikasi E-Procurement">Aplikasi E-Procurement (LPSE)</option>
-                            <option value="Aplikasi Simpeg">Aplikasi Simpeg</option>
-                            <option value="Aplikasi Simonev+e-performance">Aplikasi (Simonev)+e-performance</option>
-                            <option value="Aplikasi Integrated Maritime Surveillance">Aplikasi Integrated Maritime Surveillance</option>
-                            <option value="Aplikasi Klinik">Aplikasi Klinik</option>
-                            <option value="Aplikasi SIPI">Aplikasi SIPI</option>
-                            <option value="Aplikasi Data Basarnas">Aplikasi Data Basarnas</option>
-                            <option value="Aplikasi Balai Diklat Basarnas">Aplikasi Balai Diklat Basarnas</option>
-                            <option value="Aplikasi SSO">Aplikasi SSO</option>
-                            <option value="Aplikasi Rescue 115">Aplikasi (Rescue 115)</option>
-                            <option value="Aplikasi Persuratan">Aplikasi Persuratan</option>
-                            <option value="Aplikasi Arsip">Aplikasi Arsip</option>
-                            <option value="Aplikasi Bina Potensi">Aplikasi Bina Potensi</option>
-                            <option value="Aplikasi Potensi Operasi">Aplikasi Potensi Operasi</option>
-                            <option value="Aplikasi Aset IT">Aplikasi Aset IT</option>
-                            <option value="Aplikasi e-dupak">Aplikasi e-dupak</option>
-                            <option value="Aplikasi GIS Land">Aplikasi GIS Land</option>
-                            <option value="Aplikasi INASOC">Aplikasi INASOC</option>
-                            <option value="Aplikasi Manajemen Kerjasama Teknis">Aplikasi Manajemen Kerjasama Teknis</option>
-                            <option value="Aplikasi PPNPN">Aplikasi PPNPN</option>
-                            <option value="Aplikasi Kesiapsiagaan">Aplikasi Kesiapsiagaan</option>
-                            <option value="Aplikasi Aset Tanah">Aplikasi Aset Tanah</option>
-                            <option value="Aplikasi Eksekutif">Aplikasi Eksekutif</option>
-                            <option value="Aplikasi SKM">Aplikasi SKM</option>
-                            <option value="Aplikasi Dumas">Aplikasi Dumas</option>
-                            <option value="Aplikasi e-kinerja BKN">Aplikasi e-kinerja BKN</option>
-                            <option value="Aplikasi Dharma Wanita">Aplikasi Dharma Wanita</option>
-                            <option value="Aplikasi Simpati">Aplikasi Simpati</option>
-                            <option value="Aplikasi Absensi Online">Aplikasi Absensi Online</option>
-                            <option value="Basarnas Drive">Basarnas Drive</option>
-                            <option value="Sistem Informasi Reformasi Birokrasi">Sistem Informasi Reformasi Birokrasi</option>
-                            <option value="Aplikasi Digital Signature">Aplikasi Digital Signature</option>
-                            <option value="Aplikasi Data Tenaga">Aplikasi Data Tenaga</option>
-                            <option value="Aplikasi Sikap">Aplikasi Sikap</option>
-                            <option value="Aplikasi Sigap">Aplikasi Sigap</option>
-                            <option value="Aplikasi Surat">Aplikasi Surat</option>
-                            <option value="Sistem Informasi Saras">Sistem Informasi Saras</option>
-                            <option value="Aplikasi Penilaian Kinerja Pegawai">Aplikasi Penilaian Kinerja Pegawai</option>
-                            <option value="Website Data Services">Website Data Services</option>
-                            <option value="Website PPID">Website PPID</option>
-                        </select>
-                    </div>
-
-                    <!-- Kolom kanan: pencarian -->
-                    <div class="col-lg-4 col-md-6 col-sm-12">
-                        <label class="form-label fw-semibold">Cari</label>
-                        <input type="text" class="form-control" name="cari" placeholder="Cari data...">
                     </div>
                 </div>
             </form>
 
             <div class="mt-4">
-                <h4 class="mb-3 text-center text-md-start">Daftar Laporan</h4>
-
                 <?php
-                include "../services/connection.php";
-
                 $limit = 10;
                 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
                 $offset = ($page - 1) * $limit;
 
-                $query = "SELECT * FROM laporan";
-                $count_query = "SELECT COUNT(*) AS total FROM laporan";
+                $query = "
+                        SELECT 
+                        l.*,
+                        ml.nama_lanjuti
+                        FROM laporan l
+                        LEFT JOIN master_lanjuti ml 
+                        ON l.lanjuti_id = ml.id
+                    ";
 
+                $count_query = "
+                    SELECT COUNT(*) AS total
+                    FROM laporan l
+                    LEFT JOIN master_lanjuti ml 
+                        ON l.lanjuti_id = ml.id
+                ";
                 $filter = [];
+
+                $q = trim($_GET['q'] ?? '');
+                if ($q !== '') {
+                    $q = mysqli_real_escape_string($conn, $q);
+                    $filter[] = "(
+        nama_aplikasi LIKE '%$q%' OR
+        nama_pelapor LIKE '%$q%' OR
+        nama_petugas LIKE '%$q%' OR
+        deskripsi_permasalahan LIKE '%$q%'
+    )";
+                }
 
                 if ($_SESSION['role'] === 'user') {
                     $filter[] = "user_id = " . intval($_SESSION['user_id']);
                 }
 
-                if (!empty($_POST['nama_aplikasi'])) {
-                    $nama_aplikasi = mysqli_real_escape_string($conn, $_POST['nama_aplikasi']);
+                $nama_aplikasi = $_POST['nama_aplikasi'] ?? $_GET['nama_aplikasi'] ?? '';
+                if ($nama_aplikasi !== '') {
+                    $nama_aplikasi = mysqli_real_escape_string($conn, $nama_aplikasi);
                     $filter[] = "nama_aplikasi = '$nama_aplikasi'";
                 }
 
-                if (!empty($_POST['cari'])) {
-                    $cari = mysqli_real_escape_string($conn, $_POST['cari']);
-                    $filter[] = "(nama_pelapor LIKE '%$cari%' OR nama_petugas LIKE '%$cari%' OR deskripsi_permasalahan LIKE '%$cari%')";
+                $cari = $_POST['cari'] ?? $_GET['cari'] ?? '';
+                if ($cari !== '') {
+                    $cari = mysqli_real_escape_string($conn, $cari);
+                    $filter[] = "(nama_pelapor LIKE '%$cari%' 
+                    OR nama_petugas LIKE '%$cari%' 
+                    OR deskripsi_permasalahan LIKE '%$cari%'
+                    OR kantor_sar LIKE '%$cari%'
+                    OR unit_kerja LIKE '%$cari%')";
                 }
 
-                if (!empty($_POST['bulan_mulai']) && !empty($_POST['bulan_selesai'])) {
+                $status = $_POST['status'] ?? $_GET['status'] ?? '';
+                if ($status !== '') {
+                    $status = mysqli_real_escape_string($conn, $status);
+                    $filter[] = "status_laporan = '$status'";
+                }
 
-                    $mulai = $_POST['bulan_mulai'] . "-01";
-                    $akhir = date("Y-m-t", strtotime($_POST['bulan_selesai'] . "-01"));
 
-                    $mulai = mysqli_real_escape_string($conn, $mulai);
-                    $akhir = mysqli_real_escape_string($conn, $akhir);
-
+                $tanggal_mulai = $_POST['tanggal_mulai'] ?? $_GET['tanggal_mulai'] ?? '';
+                $tanggal_selesai = $_POST['tanggal_selesai'] ?? $_GET['tanggal_selesai'] ?? '';
+                if ($tanggal_mulai !== '' && $tanggal_selesai !== '') {
+                    $mulai = mysqli_real_escape_string($conn, $tanggal_mulai);
+                    $akhir = mysqli_real_escape_string($conn, $tanggal_selesai);
                     $filter[] = "DATE(waktu_pelaporan) BETWEEN '$mulai' AND '$akhir'";
+                }
+
+                $masalah = $_POST['masalah'] ?? $_GET['masalah'] ?? '';
+                if ($masalah !== '') {
+                    $masalah = mysqli_real_escape_string($conn, $masalah);
+                    $filter[] = "jenis_permasalahan = '$masalah'";
                 }
 
 
@@ -163,16 +206,21 @@ include '../template/sidebar.php';
                 ?>
 
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped align-middle text-center">
+                    <table class="table table-bordered table-striped align-middle text-start">
                         <thead class="table-dark">
                             <tr>
-                                <th>ID</th>
-                                <th>Tanggal Pelaporan</th>
+                                <th>No</th>
+                                <th>Waktu Pelaporan</th>
+                                <th>Waktu Penyelesaian</th>
                                 <th>Nama Aplikasi</th>
                                 <th>Nama Pelapor</th>
-                                <th>Kantor SAR</th>
+                                <th>Satker/Kantor Sar</th>
+                                <th>Unit Kerja</th>
                                 <th>Nama Petugas</th>
+                                <th>Nama Lanjuti</th>
                                 <th>Deskripsi Permasalahan</th>
+                                <th>File Permasalahan</th>
+                                <th>Deskripsi Solusi</th>
                                 <th>Jenis Permasalahan</th>
                                 <th>Status</th>
                                 <th>Durasi</th>
@@ -182,49 +230,70 @@ include '../template/sidebar.php';
                         <tbody>
                             <?php
                             if ($result && $result->num_rows > 0) {
-                                $no = 1;
+                                $no = $offset + 1;
                                 while ($row = $result->fetch_assoc()) {
-                                    $isSelesai = ($row['status_laporan'] === 'Selesai');
-                                    $durasiMenit = (int)$row['durasi'];
-                                    $jam = floor($durasiMenit / 60);
-                                    $menit = $durasiMenit % 60;
-                                    if ($jam > 0) {
-                                        $durasiFormat = $jam . " jam " . $menit . " menit";
-                                    } else {
-                                        $durasiFormat = $menit . " menit";
-                                    }
-                                    echo "<tr>
-                                    <td>{$no}</td> 
-                                    <td>{$row['waktu_pelaporan']}</td>
-                                    <td>{$row['nama_aplikasi']}</td>
-                                    <td>{$row['nama_pelapor']}</td>
-                                    <td>{$row['kantor_sar']}</td>
-                                    <td>{$row['nama_petugas']}</td>
-                                    <td class='text-center'>{$row['deskripsi_permasalahan']}</td>
-                                    <td>{$row['jenis_permasalahan']}</td>
-                                    <td>{$row['status_laporan']}</td>
-                                    <td>{$durasiFormat}</td>
-                                     <td>";
 
-                                    // Jika selesai → tombol edit disabled
-                                    if ($isSelesai) {
+                                    // ===== PERBAIKAN DURASI SESUAI PERMINTAAN =====
+                                    $durasiMenit = (int)$row['durasi'];
+                                    $status = $row['status_laporan'];
+
+                                    if ($status === 'Pending' || $status === 'Proses') {
+                                        // Jika belum selesai → tampilkan "-"
+                                        $durasiFormat = "-";
+                                    } else {
+                                        // Jika selesai → gunakan durasi final dari DB
+                                        $jam = floor($durasiMenit / 60);
+                                        $menit = $durasiMenit % 60;
+
+                                        if ($durasiMenit <= 0) {
+                                            $durasiFormat = "-";
+                                        } elseif ($jam > 0) {
+                                            $durasiFormat = "$jam jam $menit menit";
+                                        } else {
+                                            $durasiFormat = "$menit menit";
+                                        }
+                                    }
+                                    // ===== END PERBAIKAN =====
+
+                                    echo "<tr>
+                                        <td class='text-center'>{$no}</td>
+                                        <td>{$row['waktu_pelaporan']}</td>
+                                        <td>" . htmlspecialchars($row['tanggal_penyelesaian']) . "</td>
+                                        <td>" . htmlspecialchars($row['nama_aplikasi']) . "</td>
+                                        <td>" . htmlspecialchars($row['nama_pelapor']) . "</td>
+                                        <td>" . htmlspecialchars($row['kantor_sar']) . "</td>
+                                        <td>" . htmlspecialchars($row['unit_kerja']) . "</td>
+                                        <td>" . htmlspecialchars($row['nama_petugas']) . "</td>
+                                        <td>" . htmlspecialchars($row['nama_lanjuti']) . "</td>
+                                        <td>" . htmlspecialchars($row['deskripsi_permasalahan']) . "</td>
+                                        <td class='text-center'>" .
+                                        (!empty($row['gambar_deskripsi'])
+                                            ? "<a href='../upload/" . htmlspecialchars($row['gambar_deskripsi']) . "' target='_blank' class='btn btn-sm btn-info'>Lihat File</a>"
+                                            : "-") .
+                                        "</td>
+                                        <td>" . htmlspecialchars($row['solusi_permasalahan']) . "</td>
+                                        <td>" . htmlspecialchars($row['jenis_permasalahan']) . "</td>
+                                        <td>" . htmlspecialchars($row['status_laporan']) . "</td>
+                                        <td>$durasiFormat</td>
+                                        <td>";
+
+                                    if ($status === 'Selesai') {
                                         echo "<button class='btn btn-sm btn-secondary mb-1 w-100 w-md-auto' disabled>Edit</button>";
                                     } else {
                                         echo "<a href='edit_laporan.php?id={$row['id']}' class='btn btn-sm btn-warning mb-1 w-100 w-md-auto'>Edit</a>";
                                     }
 
-                                    echo "
-                                    <a href='hapus_laporan.php?id={$row['id']}' class='btn btn-sm btn-danger w-100 w-md-auto' onclick='return confirm(\"Yakin ingin menghapus laporan ini?\")'>Hapus</a>
-                                    </td>
+                                    echo " <a href='hapus_laporan.php?id={$row['id']}' class='btn btn-sm btn-danger w-100 w-md-auto' onclick='return confirm(\"Yakin ingin menghapus laporan ini?\")'>Hapus</a>
+                                        </td>
                                     </tr>";
+
                                     $no++;
                                 }
                             } else {
-                                echo "<tr><td colspan='15' class='text-center'>Belum ada laporan.</td></tr>";
+                                echo "<tr><td colspan='11' class='text-center'>Belum ada laporan.</td></tr>";
                             }
                             ?>
                         </tbody>
-
                     </table>
                 </div>
 
@@ -234,13 +303,24 @@ include '../template/sidebar.php';
                         <?php
                         if ($total_pages > 1) {
                             for ($i = 1; $i <= $total_pages; $i++) {
+                                $params = [
+                                    'page' => $i,
+                                    'tanggal_mulai' => $_POST['tanggal_mulai'] ?? '',
+                                    'tanggal_selesai' => $_POST['tanggal_selesai'] ?? '',
+                                    'nama_aplikasi' => $_POST['nama_aplikasi'] ?? '',
+                                    'masalah' => $_POST['masalah'] ?? '',
+                                    'status' => $_POST['status'] ?? '',
+                                    'cari' => $_POST['cari'] ?? ''
+                                ];
+                                $queryString = http_build_query($params);
                                 $active = $i == $page ? 'active' : '';
-                                echo "<li class='page-item $active'><a class='page-link' href='?page=$i'>$i</a></li>";
+                                echo "<li class='page-item $active'><a class='page-link' href='?{$queryString}'>$i</a></li>";
                             }
                         }
                         ?>
                     </ul>
                 </nav>
+
             </div>
         </div>
     </div>

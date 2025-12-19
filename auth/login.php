@@ -30,6 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 if ($user["role"] === "admin") {
                     header("Location: ../admin/dashboard.php");
+                } elseif ($user["role"] === "viewer") {
+                    header("Location: ../viewer/daftar_laporan.php");
                 } else {
                     header("Location: ../user/dashboard.php");
                 }
@@ -75,7 +77,7 @@ if (file_exists($path)) {
                         <div class="text-center">
                             <img src="<?php echo $base64; ?>" alt="logo" style="max-width 170px; max-height: 170px;">
                             <h3 class="fw-bold">SIMONA CANTIK</h3>
-                            <p>Sistem Monitoring Aplikasi & Pencatatatan TIK</p>
+                            <p>Sistem Monitoring Aplikasi & Pencatatan TIK</p>
                         </div>
                         <!-- Alert -->
                         <?php if (isset($error)) : ?>
@@ -112,7 +114,6 @@ if (file_exists($path)) {
                                     <img src="https://developers.google.com/identity/images/g-logo.png" width="20"> Login with Google
                                 </a>
                             </div>
-
                             <p class="text-center">Don't have an account? <a href="register.php">Sign up</a></p>
                         </form>
                     </div>

@@ -53,7 +53,7 @@ if ($masalah !== '') {
 
 
 header("Content-Type: application/vnd.ms-excel");
-header("Content-Disposition: attachment; filename=laporan_admin_.xls");
+header("Content-Disposition: attachment; filename=laporan_viewer_.xls");
 header("Pragma: no-cache");
 header("Expires: 0");
 

@@ -1,18 +1,12 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+if (session_status()===PHP_SESSION_NONE) {
   session_start();
 }
 include '../services/connection.php';
 
-if (!isset($_SESSION['user_id'])) {
-  die("Akses ditolak. Silakan login terlebih dahulu.");
-}
-
 require __DIR__ . '/../vendor/autoload.php';
 
 use Dompdf\Dompdf;
-
-$user_id = $_SESSION['user_id'];
 
 $query = "SELECT nama_aplikasi,
                  jenis_permasalahan,
@@ -21,9 +15,8 @@ $query = "SELECT nama_aplikasi,
                  ROUND(AVG(durasi), 2) AS rata_durasi,
                  nama_petugas
           FROM laporan";
-
 $filter = [];
-$filter[] = "user_id = '$user_id'";
+
 $filter[] = "status_laporan = 'Selesai'";
 
 if (!empty($_GET['nama_aplikasi'])) {
@@ -137,12 +130,12 @@ $dompdf = new Dompdf([
   'enable_remote' => true,
   'enable_font_subsetting' => true
 ]);
-
 $dompdf->loadHtml($html);
 $dompdf->setPaper('A4', 'landscape');
 $dompdf->render();
 
 // LANGSUNG DOWNLOAD PDF
-$dompdf->stream("rekap_user.pdf", ["Attachment" => true]);
+$dompdf->stream("rekap_viewer.pdf", ["Attachment" => true]);
 exit;
+
 ?>

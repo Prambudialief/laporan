@@ -11,21 +11,21 @@ if ($page < 1) $page = 1;
 
 // Set header untuk Excel
 header("Content-Type: application/vnd.ms-excel");
-header("Content-Disposition: attachment; filename=laporan_kantor_sar_page_" . $page . ".xls");
+header("Content-Disposition: attachment; filename=laporan_jenis_masalah_page_" . $page . ".xls");
 header("Pragma: no-cache");
 header("Expires: 0");
 
 if ($limit === 'all') {
 
-    $query = "SELECT kantor_sar FROM master_kantor_sar ORDER BY id DESC";
+    $query = "SELECT jenis_permasalahan FROM master_permasalahan ORDER BY id DESC";
 
 } else {
 
     $limit  = intval($limit);
     $offset = ($page - 1) * $limit;
 
-    $query = "SELECT kantor_sar 
-              FROM master_kantor_sar
+    $query = "SELECT jenis_permasalahan 
+              FROM master_permasalahan 
               ORDER BY id DESC 
               LIMIT $offset, $limit";
 }
@@ -37,7 +37,7 @@ echo "<table border='1'>
 <thead>
 <tr style='background:#d9d9d9; font-weight:bold; text-align:center;'>
     <th>No</th>
-    <th>Kantor Sar</th>
+    <th>Jenis Permasalahan</th>
 </tr>
 </thead>
 <tbody>";
@@ -47,7 +47,7 @@ $no = 1;
 while ($row = mysqli_fetch_assoc($result)) {
     echo "<tr>
         <td style='text-align:center;'>$no</td>
-        <td>{$row['kantor_sar']}</td>
+        <td>{$row['jenis_permasalahan']}</td>
     </tr>";
     $no++;
 }

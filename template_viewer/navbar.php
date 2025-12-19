@@ -1,6 +1,6 @@
 <nav class="sb-topnav navbar navbar-expand navbar-light bg-light border">
     <img src="../images/logo2.png" style="max-width: 40px; margin-left:15px;" alt="">
-    <a style="color: black;" class="navbar-brand ps-3" href="../admin/dashboard.php">SimonaCantik</a>
+    <a style="color: black;" class="navbar-brand ps-3" href="../viewer/daftar_laporan.php">SimonaCantik</a>
     <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle"><i class="fas fa-bars"></i></button>
 
     <!-- Navbar Search -->
@@ -26,7 +26,7 @@
             <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" data-bs-toggle="dropdown"><i style="color: black;" class="fas fa-user fa-fw"></i></a>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li><hr class="dropdown-divider" /></li>
-                <li><a class="dropdown-item text-center" href="../admin/profile.php">Profile</a></li>
+                <li><a class="dropdown-item text-center" href="../viewer/profile.php">Profile</a></li>
                 <li><a class="dropdown-item text-center" href="../auth/logout.php">Logout</a></li>
             </ul>
         </li>
